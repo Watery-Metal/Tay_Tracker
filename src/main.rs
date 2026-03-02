@@ -1,6 +1,9 @@
+use std::env;
+
 mod tay_files;
 mod custom_errors;
 mod menus;
+mod planning;
 
 static LOGO : &str = r"  _____             _____               _             
  |_   _|_ _ _   _  |_   _| __ __ _  ___| | _____ _ __ 
@@ -11,6 +14,19 @@ static LOGO : &str = r"  _____             _____               _
 
 fn main() {
     start_routine();
+
+    // Check for command-line start
+    let start_arguments: Vec<String> = env::args().collect();
+
+    let mut user_name : String;
+    if start_arguments.len() == 0 {
+        println!("Taking Username from CLI arguments.");
+        user_name = start_arguments[0].clone()
+    } else {
+        user_name = menus::fetch_user();
+    }
+
+    menus::initialize_schedule(user_name);
 }
 
 fn start_routine() {
