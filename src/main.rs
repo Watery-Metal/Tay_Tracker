@@ -4,6 +4,7 @@ mod tay_files;
 mod custom_errors;
 mod menus;
 mod planning;
+mod style;
 
 static LOGO : &str = r"  _____             _____               _             
  |_   _|_ _ _   _  |_   _| __ __ _  ___| | _____ _ __ 
@@ -18,15 +19,21 @@ fn main() {
     // Check for command-line start
     let start_arguments: Vec<String> = env::args().collect();
 
-    let mut user_name : String;
+    let user_name : String;
     if start_arguments.len() == 0 {
+        //TODO fix the broken CLI parsing.
         println!("Taking Username from CLI arguments.");
         user_name = start_arguments[0].clone()
     } else {
         user_name = menus::fetch_user();
     }
 
-    menus::initialize_schedule(user_name);
+    if let Some(user_schedule) = menus::initialize_schedule(user_name) {
+        menus::parent_menu(user_schedule);
+        println!("Thanks for using Tay_Tracker!\nCome again soon!");
+    } else {
+        println!("Thanks for using Tay_Tracker!");
+    }
 }
 
 fn start_routine() {
