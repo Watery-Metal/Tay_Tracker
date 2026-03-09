@@ -8,7 +8,7 @@ pub struct Task{
 }
 
 impl Task{
-    fn create(id: u16, name: String) -> Task {
+    pub fn create(id: u16, name: String) -> Task {
         Task{id, name}
     }
 }

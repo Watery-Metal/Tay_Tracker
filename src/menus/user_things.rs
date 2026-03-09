@@ -43,7 +43,7 @@ pub fn parse_user_command(prompt: Option<&str>) -> (UserChoice, UserSelection) {
                 continue
             }
             1 => {
-                //Help, or ask for creation invocation of ScheduleItem. Otherwise, invalid.
+                //Help, Scream and cancel are the only one-word commands.
                 let user_choice = check_choices(arg_vec[0], None);
                 match user_choice {
                     Some(UserChoice::Help) => {return (UserChoice::Help, UserSelection::NoSelection)}
@@ -52,10 +52,51 @@ pub fn parse_user_command(prompt: Option<&str>) -> (UserChoice, UserSelection) {
                     _ => {
                         println!("Hmm, I didn't get enough arguments to recover a command...");
                     }
+                //TODO: In the future, it could be more convenitent to allow commands like "add" to have followup here.
                 }
+            }
+            2 => {
+                // Add <item>, edit <id>, delete <id>, and complete <id> are all valid two-argument commands. 
+                // Check both arguments for being an id
+                let id_tuple = (check_id(arg_vec[0]), check_id(arg_vec[1]));
+                if id_tuple.0.is_some() || id_tuple.1.is_some() {
+                    // TODO: We have an id here, perform handling
+                    println!("The command parser got an id number from two commands, but this section hasn't been implemented yet!");
+                    return (UserChoice::Cancel, UserSelection::NoSelection)
+                }
+                // When no id was given, check if there's an add command, and a Schedule-item selection
+                let cho_tuple = (check_choices(arg_vec[0], None), check_choices(arg_vec[1], None));
+                //TODO: Compress these two possibilities
+                if cho_tuple.0 == Some(UserChoice::Add) {
+                    if let Some(selec) = check_selections(arg_vec[1]) {
+                        if is_schedule_item(&selec) {return (UserChoice::Add, selec)}
+                        println!("I couldn't parse this command cohearantly. Try again:");
+                        continue
+                    }
+                    else {
+                        println!("There was a mis-match between your command parameters.\nPlease retry:");
+                        continue
+                    }
+                } else if cho_tuple.1 == Some(UserChoice::Add) {
+                    if let Some(selec) = check_selections(arg_vec[0]) {
+                        if is_schedule_item(&selec) {return (UserChoice::Add, selec)}
+                        println!("I couldn't parse this command cohearantly. Try again:");
+                        continue
+                    }
+                    else {
+                        println!("There was a mis-match between your command parameters.\nPlease retry:");
+                        continue
+                    }
+                } else {
+                    println!("This command wasn't well-formatted.\nRe-try entering your command, or \"cancel\" to go back:");
+                    continue
+                }
+
             }
             _ => {
                 //TODO
+                println!("Watch out! While parsing your commands, more arguments were received than the programmer accounted for! Be sure to bother them to fix this.\nTry entering fewer commands:\n");
+                continue
             }
         }
     }
@@ -129,4 +170,11 @@ fn check_id(argument: &str) -> Option<u16> {
         return Some(id)
     }
     return None
+}
+
+fn is_schedule_item(sel : &UserSelection) -> bool {
+    match sel {
+        &UserSelection::Agenda | &UserSelection::Task | &UserSelection::Project  => {true}
+        _ => {false}
+    }
 }

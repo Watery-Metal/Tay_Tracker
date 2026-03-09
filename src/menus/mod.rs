@@ -1,8 +1,10 @@
 // Menu Loops for various stages of the program
 use std::io;
-use crate::{tay_files, planning::TaySchedule, menus::user_things::{UserChoice, UserSelection, parse_user_command}};
+use crate::{tay_files, planning::{TaySchedule, taytime::TayTime},
+    menus::user_things::{UserChoice, UserSelection, parse_user_command}
+    };
 
-mod user_things;
+pub mod user_things;
 
 pub fn fetch_user() -> String {
     let mut user_name: String = String::new();
@@ -22,14 +24,87 @@ pub fn fetch_user() -> String {
     
 }
 
-pub fn general_fetch(prompt: Option<&str>) -> String {
+pub fn user_set_time(prompt: Option<&str>) -> Option<TayTime> {
+    let mut response: String = String::new();
+    if prompt.is_some() {
+        println!("{}", prompt.unwrap());
+    } else {
+        println!("Enter your Date (yyyy mm dd hh):");
+    }
+    loop {
+        io::stdin().read_line(&mut response).expect("Coudn't read from user-interface");
+        let mut dig_vec : Vec<&str> = response.trim().split_ascii_whitespace().collect();
+        match dig_vec.len() {
+            0 => {
+                println!("Nothing was received; Aborting");
+                return None
+            }
+            1 => {
+                if let Ok(year) = dig_vec[0].parse::<u16>() {
+                    return Some(TayTime::create(year, None, None, None))
+                } else {
+                    println!("Unable to parse input as a year; Aborting.");
+                    return None
+                }
+            }
+            2 | 3 | 4 => {
+                //Handling Year seperate since it's a different data-type
+                let ye_pos = dig_vec.remove(0);
+                let year : u16;
+                if let Ok(parsed_year) = ye_pos.parse::<u16>() {
+                    year = parsed_year
+                } else {
+                    println!("Unable to parse input as a year; Aborting.");
+                    return None
+                }
+                let mut parsed_res = dig_vec.into_iter()
+                    .map(|digit| {digit.parse::<u8>()})
+                    .collect::<Vec<Result<u8,_>>>();
+                parsed_res.retain(|pars_res| {pars_res.is_ok()});
+                    
+                let fields = parsed_res.into_iter()
+                    .map(|kept| {Some(kept.unwrap())})
+                    .collect::<Vec<Option<u8>>>();
+                println!("Debugging: I was able to identify {} fields from this input!", fields.len() + 1);
+                match fields.len() {
+                    0 => {return Some(TayTime::create(year, None, None, None))}
+                    1 => {return Some(TayTime::create(year, fields[0],None, None))}
+                    2 => {return Some(TayTime::create(year, fields[0], fields[1], None))}
+                    3 => {return Some(TayTime::create(year, fields[0], fields[1],fields[2]))}
+                    _ => {println!("Impossible branch reached in the user_set_time() function. Bother your programmer!");
+                    return None
+                }
+                }
+            }
+            _ => {
+                println!("Too many arguments; Aborting");
+                return None
+            }
+        }
+    }
+}
+
+pub fn general_fetch(prompt: Option<&str>, check: bool) -> String {
     let mut response: String = String::new();
     if prompt.is_some() {
         println!("{}", prompt.unwrap());
     } else {
         println!("Enter your text:");
     }
-    io::stdin().read_line(&mut response).expect("Couldn't read from user-interface");
+    loop {
+        io::stdin().read_line(&mut response).expect("Couldn't read from user-interface");
+        if check {
+            if confirm(Some("Does your input look correct? (y/n):")) {
+                return response.trim().to_owned()
+            } else {
+                response = String::new();
+                println!("Please re-enter your text:");
+                continue
+            }
+        } else {
+            break
+        }
+    }
     return response.trim().to_owned()
 }
 
@@ -76,14 +151,17 @@ pub fn initialize_schedule(user_name: String) -> Option<TaySchedule> {
 }
 
 
-pub fn parent_menu(sched : TaySchedule){
+pub fn parent_menu(mut sched : TaySchedule){
     /*
     Main Menu for the user's schedule
      */
     loop {
         let activity_tuple = parse_user_command(Some("\nYou are in the main menu. What would you like to do?"));
         match activity_tuple {
-            (UserChoice::Cancel, _) => {break}
+            (UserChoice::Cancel, _) => {
+                if confirm(Some("Would you like to quit Tay_Tracker? (y/n)")) {break}
+                continue
+            }
             (UserChoice::Scream, UserSelection::NoSelection) => {sched.concise_display_all();}
             (UserChoice::Help, UserSelection::NoSelection) => {
                 // TODO: make a nicer way to print big text blocks at once.
@@ -94,16 +172,17 @@ pub fn parent_menu(sched : TaySchedule){
                 println!("    To make changes, you can use the commands \"Edit\", \"Delete\", and \"Complete\", followed (or preceeded) by the ID number of what you want to change.");
             }
             (UserChoice::Add, UserSelection::Task) => {
-
+                sched.add_schedule_item(UserSelection::Task);
             }
-
+            (UserChoice::Add, UserSelection::Agenda) => {
+                sched.add_schedule_item(UserSelection::Agenda);
+            }
+            (UserChoice::Add, UserSelection::Project) => {
+                sched.add_schedule_item(UserSelection::Project);
+            }
             _ => {
                 println!("Unhandled Command returned! Bother your programmer!");
             }
         }
     }
-}
-
-fn get_name() -> Option<String> {
-
 }

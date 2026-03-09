@@ -1,29 +1,25 @@
 use crate::style;
 use crate::planning::ScheduleItem;
+use crate::planning::taytime::TayTime;
+use crate::menus::user_set_time;
 
 static NODUEDATE: &str = "No due Date.";
 
 pub struct Agenda{
     id: u16,
     name: String,
-    due: String
+    due: TayTime
 }
 
 impl Agenda{
-    fn create(id: u16, name: String, due_opt: Option<String>) -> Agenda {
-        let due: String;
-        if due_opt.is_some() {
-            due = due_opt.unwrap();
-        } else {
-            due = NODUEDATE.to_owned();
-        }
+    pub fn create(id: u16, name: String, due: TayTime) -> Agenda {
         Agenda{id, name, due}
     }
 }
 
 impl ScheduleItem for Agenda {
     fn concise_display(&self, depth: u8) {
-        let output1 = format!("{}| Agenda #{}: {}", style::padding(depth), self.id, self.name);
+        let output1 = format!("{}| Agenda #{}, Due {}: {}", style::padding(depth), self.id, self.due.stamp() ,self.name);
         println!("{}", output1);
     }
 }
