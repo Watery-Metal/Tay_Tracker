@@ -1,7 +1,7 @@
 use crate::menus::{self, user_set_time};
 // Houses Schedule logic
-use crate::planning::{task::Task, project::Project, agenda::Agenda, taytime::TayTime};
-use crate::menus::user_things::UserSelection;
+use crate::planning::{task::Task, project::Project, agenda::Agenda};
+use crate::menus::{user_things::UserSelection, confirm};
 
 mod task;
 mod agenda;
@@ -75,7 +75,10 @@ impl TaySchedule {
                 }
             }
             UserSelection::Project => {
-                //TODO
+                let due_date = if confirm(Some("Would you like this project to have a due date? (y/n):")) {
+                    user_set_time(Some("Set a due date (yyyy mm dd hh):"))
+                } else {None};
+                
             }
             _ => {
                 println!("Warning: Somehow, your schedule has just tried to update with something other than a Schedule-item.\nPlease bug the programmer.\n");

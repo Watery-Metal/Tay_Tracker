@@ -151,19 +151,21 @@ pub fn initialize_schedule(user_name: String) -> Option<TaySchedule> {
 }
 
 
-pub fn parent_menu(mut sched : TaySchedule){
+pub fn schedule_menu(mut sched : TaySchedule, menu_depth: u16) -> TaySchedule {
     /*
     Main Menu for the user's schedule
      */
     loop {
-        let activity_tuple = parse_user_command(Some("\nYou are in the main menu. What would you like to do?"));
+        // TODO: Change this prompt based on depth.
+        let activity_tuple = parse_user_command(Some("\nEnter Menu Command:"));
         match activity_tuple {
             (UserChoice::Cancel, _) => {
-                if confirm(Some("Would you like to quit Tay_Tracker? (y/n)")) {break}
+                if confirm(Some("Would you like to quit Tay_Tracker? (y/n)")) {return sched}
                 continue
             }
             (UserChoice::Scream, UserSelection::NoSelection) => {sched.concise_display_all();}
             (UserChoice::Help, UserSelection::NoSelection) => {
+                // TODO: Vary this block by depth
                 // TODO: make a nicer way to print big text blocks at once.
                 // TODO: update the Help menu with all the commands.
                 println!("\n    Right now, you're in the main menu for your schedule. To do things, you enter commands to the terminal, and hit enter.\n");
@@ -179,6 +181,9 @@ pub fn parent_menu(mut sched : TaySchedule){
             }
             (UserChoice::Add, UserSelection::Project) => {
                 sched.add_schedule_item(UserSelection::Project);
+                if confirm(Some("Would you like to add items to your new project? (y/n):")) {
+                    //TODO: Stable method of schedules which allow for interior updating.
+                }
             }
             _ => {
                 println!("Unhandled Command returned! Bother your programmer!");

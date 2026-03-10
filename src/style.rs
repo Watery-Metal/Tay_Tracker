@@ -1,5 +1,4 @@
 // Storing formatting preferences to be shared for multiple locations
-use std::iter;
 
 static PADDING_STRING : &str = "-";
 

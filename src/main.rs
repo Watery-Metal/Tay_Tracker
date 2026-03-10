@@ -29,7 +29,8 @@ fn main() {
     }
 
     if let Some(user_schedule) = menus::initialize_schedule(user_name) {
-        menus::parent_menu(user_schedule);
+        let ret_sched = menus::schedule_menu(user_schedule, 0);
+        // TODO: Offer schedule save for ret_sched.
         println!("Thanks for using Tay_Tracker!\nCome again soon!");
     } else {
         println!("Thanks for using Tay_Tracker!");

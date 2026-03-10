@@ -1,9 +1,6 @@
 use crate::style;
 use crate::planning::ScheduleItem;
 use crate::planning::taytime::TayTime;
-use crate::menus::user_set_time;
-
-static NODUEDATE: &str = "No due Date.";
 
 pub struct Agenda{
     id: u16,
